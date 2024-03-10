@@ -1,0 +1,132 @@
+-- use music_db;
+create database temp;
+use temp;
+
+CREATE TABLE Users (
+    id int AUTO_INCREMENT PRIMARY KEY,
+    name varchar(30),
+    email VARCHAR(30) UNIQUE,
+    info TEXT NULL
+);
+INSERT INTO Users (name,email,info)
+VALUES ('Manikanta P', 'manikantap036@gmail.com','stay tuned !');
+
+CREATE TABLE Playlists(
+     id int AUTO_INCREMENT PRIMARY KEY,
+     name varchar(30),
+     user_id int,
+     FOREIGN KEY (user_id) REFERENCES Users(id)
+);
+INSERT INTO Playlists (name,user_id)
+VALUES ('Sleep' ,1),('Drive',1),('God',1);
+
+CREATE TABLE Music_directors (
+     id int AUTO_INCREMENT PRIMARY KEY,
+     name varchar(30) UNIQUE
+);
+INSERT INTO Music_directors (name)
+VALUES ('Anirudh Ravichander'),('G V Prakash'),('Hesham Abdul wahab'),('HipHop Tamizha'),('Arjun janya'),('A R Rehaman'),('DSP');
+
+CREATE TABLE Languages (
+     id int AUTO_INCREMENT PRIMARY KEY,
+    name varchar(30) UNIQUE
+);
+INSERT INTO Languages (name)
+VALUES ('Kannada'),('Telugu'),('Tamil'),('Malayalam'),('Hindi');
+
+CREATE TABLE Artists (
+     id int AUTO_INCREMENT PRIMARY KEY,
+    name varchar(30) UNIQUE
+);
+
+INSERT INTO Artists (name)
+VALUES ('Anirudh'),('G V Prakash'),('Sid sriram'),('Karthik'),('mugen roa');
+
+CREATE TABLE Albums(
+    id int AUTO_INCREMENT PRIMARY KEY,
+    name varchar(30) UNIQUE,
+    music_director_id int,
+    release_date YEAR,
+    FOREIGN KEY (music_director_id) REFERENCES Music_directors(id)
+);
+INSERT INTO Albums (name,music_director_id,release_date)
+VALUES ('Hi nanna',3,2023),('Leo',1,2023),('Vaathi',2,2023),('Kaththi',1,2019),('Master',1,2021);
+
+CREATE TABLE Tracks(
+    id int AUTO_INCREMENT PRIMARY KEY,
+    name varchar(30),
+	artist_id int,
+      duration time,
+	   FOREIGN KEY (artist_id) REFERENCES Artists(id)
+);
+INSERT INTO Tracks (name,artist_id,duration)
+VALUES ('Gaju bomma',4,'00:03:10'),('Adiga',4,'00:03:10'),('Leo Das',1,'00:03:10'),('Pogeren',3,'00:03:10'),('Va vathi',2,'00:03:10'),('Kaththi',1,'00:03:10');
+
+CREATE TABLE Album_Track_Languages(
+     id int AUTO_INCREMENT PRIMARY KEY,
+     album_id int,
+     language_id int,
+     track_id int,
+     FOREIGN KEY (album_id) REFERENCES Albums(id),
+     FOREIGN KEY (language_id) REFERENCES Languages(id),
+     FOREIGN KEY (track_id) REFERENCES Tracks(id) 
+);
+INSERT INTO Album_Track_Languages (album_id,language_id,track_id)
+VALUES (1,2,1),(1,2,2),(1,3,1),(1,1,1),(2,3,3),(2,2,3),(3,3,5),(3,2,5);
+
+
+CREATE TABLE Playlist_tracks(
+       id int AUTO_INCREMENT PRIMARY KEY,
+	   playlist_id int,
+       album_track_lang_id int,
+	   FOREIGN KEY (playlist_id) REFERENCES Playlists(id),
+    FOREIGN KEY (album_track_lang_id) REFERENCES Album_Track_Languages(id)
+);
+
+
+INSERT INTO Playlist_tracks (playlist_id,album_track_lang_id)
+VALUES (3,1),(1,1),(1,2),(2,3),(2,5),(3,2);
+
+
+SELECT * FROM USERS;
+SELECT * FROM PLAYLISTS;
+SELECT * FROM ALBUMS;
+SELECT * FROM tracks ;
+SELECT * FROM Artists order by id;
+SELECT * FROM Languages order by id;
+SELECT * FROM Music_directors order by id;
+select * from Playlist_tracks;
+select * from Album_Track_Languages;
+
+-- get all songs from one albumn
+SELECT name from tracks where id IN(SELECT track_id FROM Album_Track_Languages where album_id=1);
+-- get all tracks from one playlist
+SELECT name from tracks where id IN(SELECT track_id FROM Album_Track_Languages where id IN(SELECT album_track_lang_id FROM Playlist_tracks where playlist_id=1));
+
+SELECT t.name
+FROM tracks t
+JOIN Album_Track_Languages atl ON t.id = atl.track_id
+JOIN Playlist_tracks pt ON atl.id = pt.album_track_lang_id
+WHERE pt.playlist_id = 2;
+
+
+
+select e.emp_name,d.dept_name from employee e Join department d on  d.id=e.dept_id;
+
+-- get all songs from one album
+select distinct a.name,t.id,t.name from albums a join album_track_languages atl on a.id=atl.album_id 
+join tracks t on atl.track_id = t.id where a.name="hi nanna";
+
+
+select name from tracks where id IN (select track_id from Album_Track_Languages where id In (select album_track_lang_id from Playlist_tracks where playlist_id In (select id from playlists where name="God Pooja")));
+select t.name
+from playlists p join playlist_tracks pt on p.id=pt.playlist_id
+join Album_Track_Languages atl on atl.id=pt.album_track_lang_id 
+join tracks t on t.id=atl.track_id where p.name = "Car Drive";
+
+select l.name from languages l join Album_Track_Languages atl on atl.language_id=l.id 
+join tracks t on t.id=atl.track_id where t.name ="Gaju bomma";
+
+select t.name from tracks t join Album_Track_Languages atl on atl.track_id=t.id
+join languages l on atl.language_id=l.id where l.name="tamil";
+
